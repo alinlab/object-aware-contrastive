@@ -1,0 +1,11 @@
+einops==0.3.0
+gym==0.18.0
+kornia==0.4.1
+opencv-python==4.5.1.48
+pycocotools==2.0.2
+pytorch-lightning==1.2.4
+pytorch-lightning-bolts==0.3.2
+scikit-learn==0.23.2
+torch==1.8.1
+torchvision==0.9.1
+wandb==0.10.18
