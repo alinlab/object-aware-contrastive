@@ -1,7 +1,7 @@
 # Object-aware Contrastive Learning
 
 Official PyTorch implementation of
-["Object-aware Contrastive Learning for Debiased Scene Representation"]() by
+[**"Object-aware Contrastive Learning for Debiased Scene Representation"**](https://arxiv.org/abs/2108.00049) by
 [Sangwoo Mo*](https://sites.google.com/view/sangwoomo),
 [Hyunwoo Kang*](https://github.com/hyunOO),
 [Kihyuk Sohn](https://sites.google.com/site/kihyuksml),
