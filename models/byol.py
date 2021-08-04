@@ -51,7 +51,9 @@ class BYOL(BaseModel):
 
     def training_step(self, batch, batch_idx):
         img1, img2 = self.process_batch(batch)
+        return self.training_step_after_process_batch(img1, img2)
 
+    def training_step_after_process_batch(self, img1, img2):
         self._momentum_update_key_encoder()
 
         # forward

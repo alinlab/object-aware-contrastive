@@ -24,9 +24,7 @@ class Queue():
         return len(self.memory)
 
 
-class MoCoBGSoft(MoCo):
-    """MoCo pre-training model"""
-
+class MoCoBGMix(MoCo):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
         self.bg_queue = Queue()
@@ -99,11 +97,8 @@ class MoCoBGSoft(MoCo):
         return bg_mixup_img
 
     def generate_bg_mixed_img(self, img, masks1):
-        if self.hparams.mix_type == "soft":
-            hard_masks1 = torch.zeros_like(masks1)
-            hard_masks1[masks1 >= self.hparams.cam_thres] = 1.
-        else:
-            hard_masks1 = masks1
+        hard_masks1 = torch.zeros_like(masks1)
+        hard_masks1[masks1 >= self.hparams.cam_thres] = 1.
 
         b, c, img_h, img_w = img.size()
         rand_index = torch.randperm(b).cuda()
@@ -160,7 +155,6 @@ class MoCoBGSoft(MoCo):
         parser = ArgumentParser(parents=[parent_parser], add_help=False)
 
         # training params
-        parser.add_argument("--mix_type", choices=["soft", "hard"], default="soft", type="str")
         parser.add_argument("--aug_prob", default=0.4, type=float)
         parser.add_argument("--cam_thres", default=0.2, type=float)
 
