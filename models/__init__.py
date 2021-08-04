@@ -1,12 +1,12 @@
 from .moco import MoCo
-# from .moco_bgmix import MoCoBGMix
-# from .moco_mixup import MoCoMixup
-# from .moco_cutmix import MoCoCutMix
+from .moco_bgmix import MoCoBGMix
+from .moco_mixup import MoCoMixup
+from .moco_cutmix import MoCoCutMix
 
 from .byol import BYOL
-# from .byol_bgmix import BYOLBGMix
-# from .byol_mixup import BYOLMixup
-# from .byol_cutmix import BYOLCutMix
+from .byol_bgmix import BYOLBGMix
+from .byol_mixup import BYOLMixup
+from .byol_cutmix import BYOLCutMix
 
 from .segmentation import load_redo_model
 

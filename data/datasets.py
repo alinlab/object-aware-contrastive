@@ -124,3 +124,35 @@ class Pets(BaseDataset):
             samples.append((path, label))
 
         super().__init__(samples, transform)
+
+
+class IN9WithMask(Dataset):
+    def __init__(self, sample_dataset, mask_dataset, transform=None):
+        super().__init__()
+        self.sample_dataset = sample_dataset
+        self.mask_dataset = mask_dataset
+        self.data_file_names_list, self.mask_file_names_list = self.get_file_names_list()
+        self.transform = transform
+
+    def get_file_names_list(self):
+        imgs = self.sample_dataset.imgs
+        data_file_names_list = [img[0] for img in imgs]
+
+        masks = self.mask_dataset.imgs
+        mask_file_names_list = [mask[0] for mask in masks]
+
+        return data_file_names_list, mask_file_names_list
+
+    def __len__(self):
+        return len(self.data_file_names_list)
+
+    def __getitem__(self, idx):
+        data_file_name = self.data_file_names_list[idx]
+        mask_file_name = self.mask_file_names_list[idx]
+
+        img = Image.open(data_file_name).convert('RGB')
+        mask = Image.open(mask_file_name).convert('L')
+
+        combined = self.transform(img, mask)
+
+        return combined

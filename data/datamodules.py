@@ -10,7 +10,7 @@ from .segmentation import *
 
 DATA_ROOT = '/data'
 BOX_ROOT = './data/boxes'
-MASK_ROOT = './data/masks'
+MASK_ROOT = '/data/masks'
 SPLIT_ROOT = './data/splits'
 
 
@@ -39,10 +39,15 @@ def load_pretrain_datamodule(dataset, ft_datasets=(),
         train = ImageFolder(data_dir, transform=train_transform)
 
     elif 'in9-mask' in dataset:
+        # in9-mask-{ moco_cam / byol_cam / gt / ... }-r18
         #TODO: refactor
         data_dir = os.path.join(DATA_ROOT, 'bg_challenge/original/train')
-        mask_dir = os.path.join(MASK_ROOT, 'in9_{}.txt'.format(dataset[9:]))  # 'in9-mask-{mask_name}'
-        raise NotImplementedError('refactor code')
+        mask_type = dataset.split('-')[2]
+        mask_dir = os.path.join(MASK_ROOT, f'{mask_type}/train')
+        print(f'mask_dir: {mask_dir}')
+        sample_dataset = ImageFolder(data_dir)
+        mask_dataset = ImageFolder(mask_dir)
+        train = IN9WithMask(sample_dataset, mask_dataset, transform=train_transform)
 
     else:
         raise NotImplementedError
@@ -140,6 +145,20 @@ def load_finetune_datamodule(dataset, batch_size=64, num_workers=8,
 
     elif dataset == 'cifar100':
         dm = CIFAR100DataModule(DATA_ROOT, **loader_kwargs)
+
+    elif 'in9' in dataset:
+        # in9-{ mixed_rand / mixed_same / fg_only / ... }
+        train_data_dir = os.path.join(DATA_ROOT, 'bg_challenge/original/train')
+        trainval = ImageFolder(train_data_dir, transform=train_transform)
+        len_trainval = len(trainval)
+        train, val = random_split(trainval, [int(len_trainval*0.95), len_trainval-int(len_trainval*0.95)], generator=generator)
+
+        dataset_type = dataset.split('-')[1]
+        test_data_dir = os.path.join(DATA_ROOT, f'bg_challenge/{dataset_type}/val')
+        test = ImageFolder(test_data_dir)
+
+        apply_all_transforms(train, val, test)
+        num_classes = 9
 
     else:  # custom datamodules
         if dataset == 'cub':

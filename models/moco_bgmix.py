@@ -1,9 +1,10 @@
+from argparse import ArgumentParser
+
 import torch
 from torch.nn import functional as F
 
 import random
 
-from models.base import BaseModel
 from models.moco import MoCo
 
 
@@ -56,6 +57,8 @@ class MoCoBGMix(MoCo):
 
     def generate_bg_only_img(self, img, mask, h_min, h_max, w_min, w_max):
         c, height, width = img.size()
+        if h_max - h_min == (height - 1) and w_max - w_min == (width - 1):
+            return img, False
         else:
             current_prob = random.random()
             if self.hparams.aug_prob < current_prob:
@@ -93,8 +96,20 @@ class MoCoBGMix(MoCo):
             return bg_only_img, True
 
     def bg_mixup(self, img1, img2, mask1):
-        bg_mixup_img = mask1 * img + (1. - mask1) * img1
+        bg_mixup_img = mask1 * img1 + (1. - mask1) * img2
         return bg_mixup_img
+
+    def unnormalize(self, data):
+        if data.dim() == 4:
+            data[:, 0, :, :] = 0.229 * data[:, 0, :, :] + 0.485
+            data[:, 1, :, :] = 0.224 * data[:, 1, :, :] + 0.456
+            data[:, 2, :, :] = 0.225 * data[:, 2, :, :] + 0.406
+        else:
+            data[0, :, :] = 0.229 * data[0, :, :] + 0.485
+            data[1, :, :] = 0.224 * data[1, :, :] + 0.456
+            data[2, :, :] = 0.225 * data[2, :, :] + 0.406
+
+        return data
 
     def generate_bg_mixed_img(self, img, masks1):
         hard_masks1 = torch.zeros_like(masks1)
@@ -114,15 +129,16 @@ class MoCoBGMix(MoCo):
         bg_mixed_imgs = []
         for i in range(b):
             if not does_bg_exist[i]:
-                # if the background does not exist, just use original img
+                # if the background does not exist, just use original image
                 bg_mixed_imgs.append(img[i])
             else:
                 if not does_bg_exist[rand_index[i]]:
                     if len(self.bg_queue) == 0:
                         bg_mixed_imgs.append(img[i])
+
                     else:
                         target_img = self.bg_queue.get()
-                        bg_mixed_img = self.bg_mixup(img, target_img)
+                        bg_mixed_img = self.bg_mixup(img[i], target_img, masks1[i])
                         bg_mixed_imgs.append(bg_mixed_img)
                 else:
                     target_img = bg_only_imgs[rand_index[i]]
@@ -143,7 +159,6 @@ class MoCoBGMix(MoCo):
         return inputs
 
     def training_step(self, batch, batch_idx):
-        start_time = time.time()
         img1, img2, masks1 = self.process_batch(batch)
         img1, bg_only_img1 = self.generate_bg_mixed_img(img1, masks1)
 
@@ -151,7 +166,7 @@ class MoCoBGMix(MoCo):
 
     @staticmethod
     def add_model_specific_args(parent_parser):
-        parent_parser = BaseModel.add_model_specific_args(parent_parser)
+        parent_parser = MoCo.add_model_specific_args(parent_parser)
         parser = ArgumentParser(parents=[parent_parser], add_help=False)
 
         # training params

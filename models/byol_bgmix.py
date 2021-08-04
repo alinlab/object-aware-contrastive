@@ -1,9 +1,10 @@
+from argparse import ArgumentParser
+
 import torch
 from torch.nn import functional as F
 
 import random
 
-from models.base import BaseModel
 from models.byol import BYOL
 
 
@@ -56,6 +57,8 @@ class BYOLBGMix(BYOL):
 
     def generate_bg_only_img(self, img, mask, h_min, h_max, w_min, w_max):
         c, height, width = img.size()
+        if h_max - h_min == (height - 1) and w_max - w_min == (width - 1):
+            return img, False
         else:
             current_prob = random.random()
             if self.hparams.aug_prob < current_prob:
@@ -151,7 +154,7 @@ class BYOLBGMix(BYOL):
 
     @staticmethod
     def add_model_specific_args(parent_parser):
-        parent_parser = BaseModel.add_model_specific_args(parent_parser)
+        parent_parser = BYOL.add_model_specific_args(parent_parser)
         parser = ArgumentParser(parents=[parent_parser], add_help=False)
 
         # training params
