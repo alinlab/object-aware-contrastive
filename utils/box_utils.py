@@ -1,5 +1,7 @@
+import os
 import cv2
 import numpy as np
+from PIL import Image
 from tqdm import tqdm
 
 import torch
@@ -216,3 +218,23 @@ def save_boxes(d, path):
             for box in boxes:
                 line.append(",".join(map("{:.6f}".format, box)))
             f.write(" ".join(line) + '\n')
+
+
+def save_masks(d, path, root_path):
+    """Save boxes from dictionary"""
+    for img_id, mask in tqdm(d.items()):
+        _, h, w = mask.size()
+
+        original_img = np.asarray(Image.open(os.path.join(root_path, img_id)))
+        h_original, w_original, _ = original_img.shape
+
+        resized_mask = T.Resize((h_original, w_original))(mask)
+        resized_mask = np.uint8(resized_mask.cpu() * 255)
+        resized_mask = np.squeeze(resized_mask)
+        resized_mask = Image.fromarray(resized_mask)
+
+        save_path = os.path.join(path, img_id)
+        if not os.path.exists(os.path.dirname(save_path)):
+            os.makedirs(os.path.dirname(save_path))
+
+        resized_mask.save(save_path)

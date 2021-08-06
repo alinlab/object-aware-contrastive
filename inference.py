@@ -53,6 +53,7 @@ def cli_main():
         args.ckpt_dir = os.path.join(args.log_dir, args.ckpt_name, 'version_{}'.format(args.ckpt_version))
         args.ckpt_path = os.path.join(args.ckpt_dir, 'checkpoints', '{}.ckpt'.format(args.ckpt_epoch))
         model = model_class.load_from_checkpoint(args.ckpt_path)
+        #model = model_class(**args.__dict__)
 
         if args.mode in ['seg', 'save_box', 'save_mask']:  # use CAM model
             model = GradCAM(model.encoder, projector=model.projector, expand_res=args.expand_res)
@@ -212,8 +213,8 @@ def save_mask(args, model, device='cuda'):
     image_ids = get_image_ids(loader.dataset)
     pred_masks, _ = compute_masks(args, model, loader)
 
-    # save masks into './masks/save_path'
-    raise NotImplementedError('Refactor code')  # TODO
+    pred_masks = {img_id: mask for img_id, mask in zip(image_ids, pred_masks)}
+    box_utils.save_masks(pred_masks, args.save_path, loader.dataset.root)
 
 
 def compute_masks(args, model, loader):

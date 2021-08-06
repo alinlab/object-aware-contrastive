@@ -10,7 +10,7 @@ from .segmentation import *
 
 DATA_ROOT = '/data'
 BOX_ROOT = './data/boxes'
-MASK_ROOT = '/data/masks'
+MASK_ROOT = './data/masks'
 SPLIT_ROOT = './data/splits'
 
 
@@ -39,12 +39,8 @@ def load_pretrain_datamodule(dataset, ft_datasets=(),
         train = ImageFolder(data_dir, transform=train_transform)
 
     elif 'in9-mask' in dataset:
-        # in9-mask-{ moco_cam / byol_cam / gt / ... }-r18
-        #TODO: refactor
         data_dir = os.path.join(DATA_ROOT, 'bg_challenge/original/train')
-        mask_type = dataset.split('-')[2]
-        mask_dir = os.path.join(MASK_ROOT, f'{mask_type}/train')
-        print(f'mask_dir: {mask_dir}')
+        mask_dir = os.path.join(MASK_ROOT, f'in9_{dataset[9:]}') # 'in9-mask-{mask_name}'
         sample_dataset = ImageFolder(data_dir)
         mask_dataset = ImageFolder(mask_dir)
         train = IN9WithMask(sample_dataset, mask_dataset, transform=train_transform)
