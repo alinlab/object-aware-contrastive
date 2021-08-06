@@ -8,6 +8,8 @@ from torch.utils.data import Dataset
 
 import utils.box_utils as box_utils
 
+from robustness.tools.imagenet_helpers import ImageNetHierarchy
+
 
 class COCO(Dataset):
     def __init__(self, data_root, split='train', transform=None):
@@ -156,3 +158,58 @@ class IN9WithMask(Dataset):
         combined = self.transform(img, mask)
 
         return combined
+
+
+class NineDataset(Dataset):
+    def __init__(self, root, transform=None):
+        super().__init__()
+        self.root = root
+        self.in_info_path = './data/imagenet_info'
+        self.transform = transform
+
+        dog = 'n02084071'
+        bird = 'n01503061'
+        vehicle = 'n04576211'
+        reptile = 'n01661091'
+        carnivore = 'n02075296'
+        insect = 'n02159955'
+        instrument = 'n03800933'
+        primate = 'n02469914'
+        fish = 'n02512053'
+
+        self.imagenet_id_list = [dog, bird, vehicle, reptile, carnivore, insect, instrument, primate, fish]
+        self.imagenet_names= ['dog', 'bird', 'vehicle', 'reptile', 'carnivore', 'insect', 'instrunment', 'primate', 'fish']
+        self.file_names_list = self.get_files_list()
+
+    def get_files_list(self):
+        try:
+            in_hier = ImageNetHierarchy(self.root, self.in_info_path)
+        except:
+            os.system(f'ln -s {self.root} {self.root}/train')
+            os.system(f'ln -s {self.root} {self.root}/val')
+            in_hier = ImageNetHierarchy(self.root, self.in_info_path)
+
+        data_list = []
+        class_names_class_dict = dict()
+        for idx, class_name in enumerate(self.imagenet_id_list):
+            try:
+                superclass_wnid = in_hier.tree[class_name].descendants_all
+                superclass_wnid, class_ranges, label_map = in_hier.get_superclasses(
+                    len(in_hier.tree[class_name].descendants_all), ancestor_wnid=class_name)
+                for sub_class in superclass_wnid:
+                    file_names = os.listdir(os.path.join(self.root, 'val', sub_class))
+                    for file_name in file_names:
+                        data_list.append((os.path.join(self.root, 'val', sub_class, file_name), idx))
+            except:
+                continue
+        return data_list
+
+    def __len__(self):
+        return len(self.file_names_list)
+
+    def __getitem__(self, idx):
+        file_name, label = self.file_names_list[idx]
+        img = Image.open(file_name).convert('RGB')
+        img = self.transform(img)
+
+        return img, label

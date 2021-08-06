@@ -192,6 +192,16 @@ def load_finetune_datamodule(dataset, batch_size=64, num_workers=8,
             apply_all_transforms(train, val, test)
             num_classes = 80
 
+        elif dataset == 'imagenet-r-9':
+            train_data_dir = os.path.join(DATA_ROOT, 'bg_challenge/original/train')
+            train = ImageFolder(train_data_dir)
+            val_data_dir = os.path.join(DATA_ROOT, 'bg_challenge/bg_challenge/original/val')
+            val = ImageFolder(val_data_dir)
+
+            test = NineDataset(os.path.join(DATA_ROOT, 'imagenet-r'))
+            apply_all_transforms(train, val, test)
+            num_classes = 9
+
         else:
             raise NotImplementedError
 
