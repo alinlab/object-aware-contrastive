@@ -150,7 +150,7 @@ def load_finetune_datamodule(dataset, batch_size=64, num_workers=8,
         train, val = random_split(trainval, [int(len_trainval*0.95), len_trainval-int(len_trainval*0.95)], generator=generator)
 
         dataset_type = dataset.split('-')[1]
-        test_data_dir = os.path.join(DATA_ROOT, f'bg_challenge/{dataset_type}/val')
+        test_data_dir = os.path.join(DATA_ROOT, f'bg_challenge/bg_challenge/{dataset_type}/val')
         test = ImageFolder(test_data_dir)
 
         apply_all_transforms(train, val, test)
