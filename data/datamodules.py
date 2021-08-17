@@ -39,10 +39,11 @@ def load_pretrain_datamodule(dataset, ft_datasets=(),
         train = ImageFolder(data_dir, transform=train_transform)
 
     elif 'in9-mask' in dataset:
-        #TODO: refactor
         data_dir = os.path.join(DATA_ROOT, 'bg_challenge/original/train')
-        mask_dir = os.path.join(MASK_ROOT, 'in9_{}.txt'.format(dataset[9:]))  # 'in9-mask-{mask_name}'
-        raise NotImplementedError('refactor code')
+        mask_dir = os.path.join(MASK_ROOT, f'in9_{dataset[9:]}') # 'in9-mask-{mask_name}'
+        sample_dataset = ImageFolder(data_dir)
+        mask_dataset = ImageFolder(mask_dir)
+        train = IN9WithMask(sample_dataset, mask_dataset, transform=train_transform)
 
     else:
         raise NotImplementedError
@@ -141,6 +142,20 @@ def load_finetune_datamodule(dataset, batch_size=64, num_workers=8,
     elif dataset == 'cifar100':
         dm = CIFAR100DataModule(DATA_ROOT, **loader_kwargs)
 
+    elif 'in9' in dataset:
+        # in9-{ mixed_rand / mixed_same / fg_only / ... }
+        train_data_dir = os.path.join(DATA_ROOT, 'bg_challenge/original/train')
+        trainval = ImageFolder(train_data_dir, transform=train_transform)
+        len_trainval = len(trainval)
+        train, val = random_split(trainval, [int(len_trainval*0.95), len_trainval-int(len_trainval*0.95)], generator=generator)
+
+        dataset_type = dataset.split('-')[1]
+        test_data_dir = os.path.join(DATA_ROOT, f'bg_challenge/bg_challenge/{dataset_type}/val')
+        test = ImageFolder(test_data_dir)
+
+        apply_all_transforms(train, val, test)
+        num_classes = 9
+
     else:  # custom datamodules
         if dataset == 'cub':
             trainval = ImageFolder(os.path.join(DATA_ROOT, 'CUB_200_2011/train'))
@@ -176,6 +191,16 @@ def load_finetune_datamodule(dataset, batch_size=64, num_workers=8,
             train, val = random_split(trainval, [len(trainval) - 10000, 10000], generator=generator)
             apply_all_transforms(train, val, test)
             num_classes = 80
+
+        elif dataset == 'imagenet-r-9':
+            train_data_dir = os.path.join(DATA_ROOT, 'bg_challenge/original/train')
+            train = ImageFolder(train_data_dir)
+            val_data_dir = os.path.join(DATA_ROOT, 'bg_challenge/bg_challenge/original/val')
+            val = ImageFolder(val_data_dir)
+
+            test = NineDataset(os.path.join(DATA_ROOT, 'imagenet-r'))
+            apply_all_transforms(train, val, test)
+            num_classes = 9
 
         else:
             raise NotImplementedError

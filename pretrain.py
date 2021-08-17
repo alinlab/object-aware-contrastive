@@ -51,7 +51,7 @@ def cli_main():
     normalize = get_normalization(args.dataset)
     crop_scale = (args.min_crop_scale, args.max_crop_scale)
 
-    train_transform = PretrainTransform(image_size=args.image_size, crop_scale=crop_scale)
+    train_transform = PretrainTransform(image_size=args.image_size, crop_scale=crop_scale, use_mask=('mask' in args.dataset))
     test_transform = FinetuneTransform(image_size=args.image_size, normalize=normalize)
 
     args.diff_transform = KorniaTransform(image_size=args.image_size, normalize=normalize,

@@ -16,25 +16,44 @@ def get_normalization(normalize):
 
 class PretrainTransformBase:
     """Base transformations for pre-training"""
-    def __init__(self, image_size=224, crop_scale=(0.08, 1.), view=2):
+    def __init__(self, image_size=224, crop_scale=(0.08, 1.), view=2, use_mask=False):
         self.view = view
-        self.transform = T.Compose([
+        transform = [
             T.RandomResizedCrop(image_size, scale=crop_scale),
             T.RandomHorizontalFlip(p=0.5),
-            T.ToTensor(),
-        ])
-        self.transform_orig = T.Compose([
+        ]
+        transform_orig = [
             T.Resize((image_size, image_size)),
-            T.ToTensor(),
-        ])
+        ]
+
+        if not use_mask:
+            transform.append(T.ToTensor())
+            transform_orig.append(T.ToTensor())
+        self.transform = T.Compose(transform)
+        self.transform_orig = T.Compose(transform_orig)
 
 
 class PretrainTransform(PretrainTransformBase):
     """Base transformations for pre-training"""
-    def __call__(self, sample):
-        out = []
-        for _ in range(self.view):
-            out.append(self.transform(sample))
+    def __call__(self, sample, mask=None):
+        if mask is None:
+            out = []
+            for _ in range(self.view):
+                out.append(self.transform(sample))
+        else:
+            sample = T.ToTensor()(sample)
+            mask = T.ToTensor()(mask)
+            out = []
+            for i in range(self.view):
+                if i == 0:
+                    combined = self.transform(torch.cat([sample, mask]))
+                    first_sample = combined[:3, :, :]
+                    mask = combined[-1, :, :]
+                    out.append(first_sample)
+                else:
+                    out.append(self.transform(sample))
+            out.append(mask)
+
         return out
 
 
