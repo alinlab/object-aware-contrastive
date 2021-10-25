@@ -50,10 +50,13 @@ def cli_main():
 
     # load model
     if args.model in ['moco', 'byol']:
+        # compatible with pretrained models
+        import sys
+        sys.path.insert(0, './data')
+        
         args.ckpt_dir = os.path.join(args.log_dir, args.ckpt_name, 'version_{}'.format(args.ckpt_version))
         args.ckpt_path = os.path.join(args.ckpt_dir, 'checkpoints', '{}.ckpt'.format(args.ckpt_epoch))
         model = model_class.load_from_checkpoint(args.ckpt_path)
-        #model = model_class(**args.__dict__)
 
         if args.mode in ['seg', 'save_box', 'save_mask']:  # use CAM model
             model = GradCAM(model.encoder, projector=model.projector, expand_res=args.expand_res)
