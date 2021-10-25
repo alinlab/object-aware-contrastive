@@ -1,7 +1,7 @@
 # Object-aware Contrastive Learning
 
 Official PyTorch implementation of
-[**"Object-aware Contrastive Learning for Debiased Scene Representation"**](https://arxiv.org/abs/2108.00049) by
+[**"Object-aware Contrastive Learning for Debiased Scene Representation"**](https://arxiv.org/abs/2108.00049) (NeurIPS 2021) by
 [Sangwoo Mo*](https://sites.google.com/view/sangwoomo),
 [Hyunwoo Kang*](https://github.com/hyunOO),
 [Kihyuk Sohn](https://sites.google.com/site/kihyuksml),
@@ -15,6 +15,8 @@ Install required libraries.
 pip install -r requirements.txt
 ```
 Download datasets in `/data` (e.g., `/data/COCO`).
+
+Pretrained models trained on COCO are available at [google drive](https://drive.google.com/drive/folders/1ii-j0fPnAmy4LdecdgvwsD3o4DljOjl4?usp=sharing).
 
 ## Train models
 
