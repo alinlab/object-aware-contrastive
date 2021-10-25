@@ -16,7 +16,7 @@ pip install -r requirements.txt
 ```
 Download datasets in `/data` (e.g., `/data/COCO`).
 
-Pretrained models trained on COCO are available at [google drive](https://drive.google.com/drive/folders/1ii-j0fPnAmy4LdecdgvwsD3o4DljOjl4?usp=sharing).
+Pretrained models are available at [google drive](https://drive.google.com/drive/folders/1ii-j0fPnAmy4LdecdgvwsD3o4DljOjl4?usp=sharing).
 
 ## Train models
 
